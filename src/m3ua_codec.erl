@@ -18,19 +18,19 @@
     daud      |
     scon      |
     dupu      |
-    drst 	  |
-    aspup 	  |
-    aspdn	  |
-    beat 	  |
+    drst      |
+    aspup     |
+    aspdn     |
+    beat      |
     aspup_ack |
     aspdn_ack |
     beat_ack  |
-    aspac 	  |
-    aspia  	  |
+    aspac     |
+    aspia     |
     aspac_ack |
     aspia_ack |
-    regreq 	  |
-    regrsp 	  |
+    regreq    |
+    regrsp    |
     dereg_req |
     dereg_rsp.
 
