@@ -1,8 +1,10 @@
 -module(m3ua_codec).
 
 -export([decode/1]).
+-export([encode/1]).
 -export([format_error/1]).
 
+-include("mtp3.hrl").
 -include("m3ua.hrl").
 
 -type message_class() :: mgmt | xfr | ssnm | aspsm | asptm | rkm.
@@ -43,6 +45,12 @@ decode(Data) ->
         type       = decode_type(Class, Type),
         parameters = decode_parameters(Payload, #{})
     }.
+
+-spec encode(M3UA :: #m3ua{}) -> binary().
+encode(#m3ua{class = Class, type = Type, parameters = Parameters}) ->
+    Payload = maps:fold(fun encode_parameters/3, <<>>, Parameters),
+    Length = byte_size(Payload) + 8,
+    <<1:8, 0:8, (encode_class(Class)):8, (encode_type(Class, Type)):8, Length:32, Payload/binary>>.
 
 %% Section 3.8.1
 -spec format_error(pos_integer()) -> string().
@@ -181,8 +189,116 @@ decode_parameter(?M3UA_PARAM_REGISTRATION_RESULT, Value, Parameters) ->
 decode_parameter(?M3UA_PARAM_REGISTRATION_STATUS, <<Value:32>>, Parameters) ->
     Parameters#{registration_status => Value};
 
+decode_parameter(?M3UA_PARAM_PROTOCOL_DATA, Value, Parameters) ->
+    <<OPC:32, DPC:32, SI:8, NI:8, Priority:8, SLS:8, Payload/binary>> = Value,
+    MTP3 = #mtp3{
+        opc 	 = OPC,
+        dpc 	 = DPC,
+        sls 	 = SLS,
+        ni  	 = NI,
+        si  	 = SI,
+        priority = Priority,
+        payload  = Payload
+    },
+    Parameters#{protocol_data => MTP3};
+
 decode_parameter(Tag, Value, Parameters) ->
     Parameters#{Tag => Value}.
 
 decode_pcs(Data) ->
     [{Mask, PC} || <<Mask:8, PC:24>> <= Data].
+
+encode_class(mgmt)  -> 0;
+encode_class(xfr)   -> 1;
+encode_class(ssnm)  -> 2;
+encode_class(aspsm) -> 3;
+encode_class(asptm) -> 4;
+encode_class(rkm)   -> 9.
+
+encode_type(Class, Type) ->
+    case {Class, Type} of
+        {mgmt, error}      -> 0;
+        {mgmt, notify}     -> 1;
+        {xfr, data}        -> 1;
+        {ssnm, duna}       -> 1;
+        {ssnm, dava}       -> 2;
+        {ssnm, daud}       -> 3;
+        {ssnm, scon}       -> 4;
+        {ssnm, dupu}       -> 5;
+        {ssnm, drst}       -> 6;
+        {aspsm, aspup}     -> 1;
+        {aspsm, aspdn}     -> 2;
+        {aspsm, beat}      -> 3;
+        {aspsm, aspup_ack} -> 4;
+        {aspsm, aspdn_ack} -> 5;
+        {aspsm, beat_ack}  -> 6;
+        {asptm, aspac}     -> 1;
+        {asptm, aspia}     -> 2;
+        {asptm, aspac_ack} -> 3;
+        {asptm, aspia_ack} -> 4;
+        {rkm, regreq}      -> 1;
+        {rkm, regrsp}      -> 2;
+        {rkm, dereg_req}   -> 3;
+        {rkm, dereg_rsp}   -> 4
+    end.
+
+encode_parameters(Key, Value, Acc) ->
+    {Tag, Data} =
+        case Key of
+            routing_ctxt ->
+                {?M3UA_PARAM_ROUTING_CTXT, <<Value:32>>};
+            diagnostic_msg ->
+                {?M3UA_PARAM_DIAGNOSTIC_MSG, Value};
+            heartbeat_data ->
+                {?M3UA_PARAM_HEARTBEAT_DATA, Value};
+            tmt ->
+                TMT =
+                    case Value of
+                        override  -> 1;
+                        loadshare -> 2;
+                        broadcast -> 3
+                    end,
+                {?M3UA_PARAM_TMT, <<TMT:32>>};
+            error_code ->
+                {?M3UA_PARAM_ERROR_CODE, <<Value:32>>};
+            status ->
+                #{type := Type, information := Information} = Value,
+                {?M3UA_PARAM_STATUS, <<Type:16, Information:16>>};
+            asp_identifier ->
+                {?M3UA_PARAM_ASP_ID, <<Value:32>>};
+            affected_poind_code ->
+                {?M3UA_PARAM_APC, << <<Mask:8, PC:24>> || {Mask, PC} <- Value >>};
+            correlation_id ->
+                {?M3UA_PARAM_CORRELATION_ID, <<Value:32>>};
+            network_appearance ->
+                {?M3UA_PARAM_NETWORK_APP, <<Value:32>>};
+            routing_key ->
+                {?M3UA_PARAM_ROUTING_KEY, maps:fold(fun encode_parameters/3, <<>>, Value)};
+            local_rk_identifier ->
+                {?M3UA_PARAM_LOCAL_RK_ID, <<Value:32>>};
+            dpc ->
+                {?M3UA_PARAM_DPC, << <<Mask:8, PC:24>> || {Mask, PC} <- Value >>};
+            opc_list ->
+                {?M3UA_PARAM_OPC_LIST, << <<Mask:8, PC:24>> || {Mask, PC} <- Value >>};
+            si ->
+                {?M3UA_PARAM_SI, << <<SI:8>> || SI <- Value >>};
+            registration_result ->
+                {?M3UA_PARAM_REGISTRATION_RESULT, maps:fold(fun encode_parameters/3, <<>>, Value)};
+            registration_status ->
+                {?M3UA_PARAM_REGISTRATION_STATUS, <<Value:32>>};
+            protocol_data ->
+                #mtp3{
+                    ni       = NI,
+                    si       = SI,
+                    opc      = OPC,
+                    dpc      = DPC,
+                    sls      = SLS,
+                    priority = Priority,
+                    payload  = Payload
+                } = Value,
+                {?M3UA_PARAM_PROTOCOL_DATA, <<OPC:32, DPC:32, SI:8, NI:8, Priority:8, SLS:8, Payload/binary>>}
+        end,
+    DataLength = byte_size(Data),
+    ParameterLength = 4 + DataLength,
+    PadLen = pad_bytes(ParameterLength) * 8,
+    <<Acc/binary, Tag:16, ParameterLength:16, Data:DataLength/bytes, 0:PadLen>>.
