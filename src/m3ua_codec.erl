@@ -9,28 +9,28 @@
 
 -type message_type() ::
     error     |
-	notify    |
-	data      |
-	duna      |
-	dava      |
-	daud      |
-	scon      |
-	dupu      |
-	drst 	  |
+    notify    |
+    data      |
+    duna      |
+    dava      |
+    daud      |
+    scon      |
+    dupu      |
+    drst 	  |
     aspup 	  |
-	aspdn	  |
-	beat 	  |
-	aspup_ack |
-	aspdn_ack |
-	beat_ack  |
-	aspac 	  |
+    aspdn	  |
+    beat 	  |
+    aspup_ack |
+    aspdn_ack |
+    beat_ack  |
+    aspac 	  |
     aspia  	  |
-	aspac_ack |
-	aspia_ack |
-	regreq 	  |
-	regrsp 	  |
-	dereg_req |
-	dereg_rsp.
+    aspac_ack |
+    aspia_ack |
+    regreq 	  |
+    regrsp 	  |
+    dereg_req |
+    dereg_rsp.
 
 -export_type([message_class/0]).
 -export_type([message_type/0]).
@@ -88,12 +88,12 @@ decode_type(Class, Type) ->
         %% Transfer (XFR) Messages
         {1, 1} -> data;
         %% SS7 Signalling Network Management (SSNM) Messages
-        {2, 1} -> duna; 	 %% Destination Unavailable (DUNA)
-        {2, 2} -> dava; 	 %% Destination Available (DAVA)
-        {2, 3} -> daud; 	 %% estination State Audit (DAUD)
-        {2, 4} -> scon; 	 %% Signalling Congestion (SCON)
-        {2, 5} -> dupu; 	 %% Destination User Part Unavailable (DUPU)
-        {2, 6} -> drst; 	 %% Destination Restricted (DRST)
+        {2, 1} -> duna;      %% Destination Unavailable (DUNA)
+        {2, 2} -> dava;      %% Destination Available (DAVA)
+        {2, 3} -> daud;      %% estination State Audit (DAUD)
+        {2, 4} -> scon;      %% Signalling Congestion (SCON)
+        {2, 5} -> dupu;      %% Destination User Part Unavailable (DUPU)
+        {2, 6} -> drst;      %% Destination Restricted (DRST)
         %% ASP State Maintenance (ASPSM) Messages
         {3, 1} -> aspup;     %% ASP Up (ASPUP)
         {3, 2} -> aspdn;     %% ASP Down (ASPDN)
@@ -102,13 +102,13 @@ decode_type(Class, Type) ->
         {3, 5} -> aspdn_ack; %% ASP Down Acknowledgement (ASPDN ACK)
         {3, 6} -> beat_ack;  %% Heartbeat Acknowledgement (BEAT ACK)
         %% ASP Traffic Maintenance (ASPTM) Messages
-        {4, 1} -> aspac;	 %% ASP Active (ASPAC)
-        {4, 2} -> aspia;	 %% ASP Inactive (ASPIA)
+        {4, 1} -> aspac;     %% ASP Active (ASPAC)
+        {4, 2} -> aspia;     %% ASP Inactive (ASPIA)
         {4, 3} -> aspac_ack; %% ASP Active Acknowledgement (ASPAC ACK)
         {4, 4} -> aspia_ack; %% ASP Inactive Acknowledgement (ASPIA ACK)
         %% Routing Key Management (RKM) Messages
-        {9, 1} -> regreq; 	 %% Registration Request (REG REQ)
-        {9, 2} -> regrsp; 	 %% Registration Response (REG RSP)
+        {9, 1} -> regreq;    %% Registration Request (REG REQ)
+        {9, 2} -> regrsp;    %% Registration Response (REG RSP)
         {9, 3} -> dereg_req; %% Deregistration Request (DEREG REQ)
         {9, 4} -> dereg_rsp  %% Deregistration Response (DEREG RSP)
     end.
