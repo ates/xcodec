@@ -1,0 +1,35 @@
+Signaling System 7 (SS7) Message Transfer Part 3 (MTP3) - User Adaptation Layer (M3UA)
+======================================================================================
+
+Specification: RFC 4666 https://tools.ietf.org/html/rfc4666
+
+.M3UA Variable-Length Parameters
+[options="header,footer"]
+|=============================
+|Section|Name|Decode|Encode|Test|Comments
+|3.4.1  |INFO String|X|X|-|
+|3.4.1  |Routing Context|X|X|X|
+|3.8.1  |Diagnostic Information|X|X|X|
+|3.5.5  |Heartbeat Data|X|X||
+|3.6.1  |Traffic Mode Type|X|X|X|
+|3.8.1  |Error Code|X|X|X|
+|3.8.2  |Status|X|X|X|
+|3.5.1  |ASP Identifier|X|X|X|
+|3.4.1  |Affected Point Code|X|X||
+|3.3.1  |Correlation ID|X|X||
+|3.3.1  |Network Appearance|X|X|X|
+|3.4.5  |User/Cause||||
+|3.4.4  |Congestion Indications||||
+|3.4.4  |Concerned Destination||||
+|3.6.1  |Routing Key|X|X|X|
+|3.6.2  |Registration Result|X|X|X|
+|3.6.4  |Deregistration Status||||
+|3.6.2  |Local Routing Key Identifier|X|X|X|
+|3.6.1  |Destination Point Code|X|X|X|
+|3.6.1  |Service Indicators|X|X||
+|3.6.1  |Originating Point Code List|X|X|X|
+|3.3.1  |Protocol Data|X|X|X|
+|3.6.2  |Registration Status|X|X|X|
+|3.6.4  |Deregistration Status||||
+|=============================
+
