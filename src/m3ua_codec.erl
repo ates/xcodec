@@ -150,6 +150,9 @@ decode_parameter(?M3UA_PARAM_TMT, <<Value:32>>, Parameters) ->
             end
     };
 
+decode_parameter(?M3UA_PARAM_INFO_STRING, Value, Parameters) ->
+    Parameters#{info_string => Value};
+
 decode_parameter(?M3UA_PARAM_ERROR_CODE, <<Value:32>>, Parameters) ->
     Parameters#{error_code => Value};
 
@@ -245,6 +248,8 @@ encode_type(Class, Type) ->
 encode_parameters(Key, Value, Acc) ->
     {Tag, Data} =
         case Key of
+            info_string ->
+                {?M3UA_PARAM_INFO_STRING, Value};
             routing_ctxt ->
                 {?M3UA_PARAM_ROUTING_CTXT, <<Value:32>>};
             diagnostic_msg ->
