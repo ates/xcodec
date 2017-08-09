@@ -15,17 +15,29 @@
 %%    -- as filler when there is an odd number of digits.
 %%    -- bits 8765 of octet n encoding digit 2n
 %%    -- bits 4321 of octet n encoding digit 2(n-1) +1
-%%
 -spec decode(Data :: binary()) -> binary().
 decode(Data) ->
-    << <<First, Second>> || <<Second:4, First:4>> <= Data >>.
+    decode(Data, <<>>).
+
+decode(<<Second:4, First:4, _Rest/binary>>, Acc) when Second =:= 16#0F ->
+    <<Acc/binary, First>>;
+decode(<<Second:4, First:4, _Rest/binary>>, Acc) when First =:= 16#0F ->
+    <<Acc/binary, Second>>;
+decode(<<Second:4, First:4, Rest/binary>>, Acc) ->
+    decode(Rest, <<Acc/binary, First, Second>>);
+decode(<<>>, Acc) -> Acc.
 
 -spec encode(Digits :: binary()) -> binary().
 encode(Digits) ->
-    encode(Digits, <<>>).
+    encode(Digits, byte_size(Digits) rem 2, <<>>).
 
-encode(<<First:8, Second:8, Rest/binary>>, Acc) ->
-    encode(Rest, <<Acc/binary, Second:4, First:4>>);
-encode(<<Last>>, Acc) ->
-    <<Acc/binary, 0:4, Last:4>>;
-encode(<<>>, Acc) -> Acc.
+encode(<<First:8, Second:8, Rest/binary>>, OddEven, Acc) ->
+    encode(Rest, OddEven, <<Acc/binary, Second:4, First:4>>);
+encode(<<Last>>, OddEven, Acc) ->
+    case OddEven of
+        0 ->
+            <<Acc/binary, 0:4, Last:4>>;
+        1 ->
+            <<Acc/binary, 16#0F:4, Last:4>>
+    end;
+encode(<<>>, _OddEven, Acc) -> Acc.
