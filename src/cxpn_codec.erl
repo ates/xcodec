@@ -4,6 +4,8 @@
 -export([encode_cgpn/1]).
 -export([decode_cdpn/1]).
 -export([encode_cdpn/1]).
+-export([decode_cgpn_bcd/1]).
+-export([encode_cgpn_bcd/1]).
 -export([decode_cdpn_bcd/1]).
 -export([encode_cdpn_bcd/1]).
 
@@ -27,6 +29,15 @@
         number := binary()
     }.
 
+-type cgpn_bcd() ::
+    #{
+        ton    := 0..7,    %% Type of number
+        npi    := 0..7,    %% Numbering plan indicator
+        pi     := 0..3,    %% Presentation indicator
+        si     := 0..3,    %% Screening indicator
+        number := binary()
+    }.
+
 -type cdpn_bcd() ::
     #{
         ton    := 0..7,    %% Type of number
@@ -36,6 +47,7 @@
 
 -export_type([cgpn/0]).
 -export_type([cdpn/0]).
+-export_type([cgpn_bcd/0]).
 -export_type([cdpn_bcd/0]).
 
 %% Q.763, section 3.10
@@ -87,6 +99,29 @@ encode_cdpn(CdPN) ->
         number := Number
     } = CdPN,
     <<OE:1, NAI:7, INN:1, NPI:3, 0:4, (tbcd_codec:encode(af(Number, OE)))/binary>>.
+
+%% 3GPP TS 24.008 10.5.4.9
+-spec decode_cgpn_bcd(Data :: binary()) -> cgpn_bcd().
+decode_cgpn_bcd(Data) ->
+    <<_Ext:1, TON:3, NPI:4, 1:1, PI:2, _Spare:3, SI:2, TBCD/binary>> = Data,
+    #{
+        ton    => TON,
+        npi    => NPI,
+        pi     => PI,
+        si     => SI,
+        number => tbcd_codec:decode(TBCD)
+    }.
+
+-spec encode_cgpn_bcd(CgPN :: cgpn_bcd()) -> binary().
+encode_cgpn_bcd(CgPN) ->
+    #{
+        ton    := TON,
+        npi    := NPI,
+        pi     := PI,
+        si     := SI,
+        number := Number
+    } = CgPN,
+    <<0:1, TON:3, NPI:4, 1:1, PI:2, 0:3, SI:2, (tbcd_codec:encode(Number))/binary>>.
 
 %% 3GPP TS 24.008 10.5.4.7
 -spec decode_cdpn_bcd(Data :: binary()) -> cdpn_bcd().
