@@ -1,5 +1,5 @@
 {application, xcodec, [
-    {description, ""},
+    {description, "SS7 & SIGTRAN protocol codecs"},
     {vsn, "0.0.1"},
     {applications, [kernel, stdlib]}
 ]}.

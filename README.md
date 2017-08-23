@@ -1,2 +1,2 @@
-xcodec - a set of SS7 & SIGTRAN protocols decoders/encoders
-===========================================================
+xcodec - SS7 & SIGTRAN protocol codecs
+======================================
